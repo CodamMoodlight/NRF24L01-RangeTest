@@ -1,16 +1,18 @@
+/*
+ * See documentation at https://nRF24.github.io/RF24
+ * See License information at root directory of this library
+ * Author: Brendan Doherty (2bndy5)
+ */
+
 /**
  * A simple example of sending data from 1 nRF24L01 transceiver to another.
  *
  * This example was written to be used on 2 devices acting as "nodes".
  * Use the Serial Monitor to change each node's behavior.
  */
-
-#include <Arduino.h>
 #include <SPI.h>
 #include "printf.h"
 #include "RF24.h"
-
-#define TRANSMITTER
 
 #define CE_PIN 7
 #define CSN_PIN 8
@@ -38,13 +40,10 @@ void setup()
 {
 
     Serial.begin(115200);
-
-#ifdef TRANSMITTER
     while (!Serial)
     {
         // some boards need to wait to ensure access to serial over USB
     }
-#endif
 
     // initialize the transceiver on the SPI bus
     if (!radio.begin())
@@ -60,22 +59,12 @@ void setup()
 
     // To set the radioNumber via the Serial monitor on startup
     Serial.println(F("Which radio is this? Enter '0' or '1'. Defaults to '0'"));
-    
-    // while (!Serial.available())
-    // {
-    //     // wait for user input
-    // }
-    // char input = Serial.parseInt();
-    // radioNumber = input == 1;
-
-#ifdef TRANSMITTER
-    radioNumber = 1;
-    role = true; // true = TX role, false = RX role
-#else
-    radioNumber = 0;
-    role = false; // true = TX role, false = RX role
-#endif
-
+    while (!Serial.available())
+    {
+        // wait for user input
+    }
+    char input = Serial.parseInt();
+    radioNumber = input == 1;
     Serial.print(F("radioNumber = "));
     Serial.println((int)radioNumber);
 
@@ -112,8 +101,7 @@ void setup()
     // radio.printDetails();       // (smaller) function that prints raw register values
     // radio.printPrettyDetails(); // (larger) function that prints human readable data
 
-
-}
+} // setup
 
 void loop()
 {
@@ -183,4 +171,5 @@ void loop()
             radio.startListening();
         }
     }
-}
+
+} // loop
