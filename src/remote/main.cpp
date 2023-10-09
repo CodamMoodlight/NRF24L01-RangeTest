@@ -2,20 +2,22 @@
 #include "printf.h"
 #include "RF24.h"
 #include "config.h"
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 #define CE_PIN 7
 #define CSN_PIN 8
 
-RF24 radio(CE_PIN, CSN_PIN);
+#define BTN_PIN 5
 
+
+RF24 radio(CE_PIN, CSN_PIN);
 float payload = 0.0;
 
 void setup()
 {
+    pinMode(BTN_PIN, INPUT_PULLUP);
     Serial.begin(115200);
-    while (!Serial)
-        ;
-
     // initialize the transceiver on the SPI bus
     if (!radio.begin())
     {
@@ -29,16 +31,9 @@ void setup()
 
     radio.stopListening();                       // put radio in TX mode
     radio.openWritingPipe(RADIO_ADDR[ADDR_LED]); // always uses pipe 0
-
-
-
-    // For debugging info
-    // printf_begin();             // needed only once for printing details
-    // radio.printDetails();       // (smaller) function that prints raw register values
-    // radio.printPrettyDetails(); // (larger) function that prints human readable data
 }
 
-void loop()
+void radioSend()
 {
     // This device is a TX node
     unsigned long start_timer = micros();               // start the timer
@@ -58,7 +53,12 @@ void loop()
     {
         Serial.println(F("Transmission failed or timed out")); // payload was not delivered
     }
-
-    // to make this example readable in the serial monitor
-    delay(1000); // slow transmissions down by 1 second
+}
+void loop()
+{
+    if (!digitalRead(BTN_PIN))
+    {
+        radioSend();
+        delay(200);
+    }
 }

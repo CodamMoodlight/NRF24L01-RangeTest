@@ -12,6 +12,8 @@ float payload = 0.0;
 void setup()
 {
     Serial.begin(115200);
+    
+
     while (!Serial);
 
     if (!radio.begin())
