@@ -18,6 +18,7 @@ void setup()
 {
     pinMode(BTN_PIN, INPUT_PULLUP);
     Serial.begin(115200);
+
     // initialize the transceiver on the SPI bus
     if (!radio.begin())
     {
