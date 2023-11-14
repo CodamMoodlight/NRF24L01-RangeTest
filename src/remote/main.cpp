@@ -15,7 +15,6 @@
 
 RF24 radio(CE_PIN, CSN_PIN);
 float payload = 0.0;
-unsigned long time_old;
 
 
 void radioSend()
@@ -62,22 +61,17 @@ void setup_radio()
 
 void interrupt_cb()
 {
-    if (millis() - time_old > 200)
-    {
-        radioSend();
-        digitalWrite(LED_PIN, !digitalRead(LED_PIN));
-        time_old = millis();
-    }
+    radioSend();
+    digitalWrite(LED_PIN, !digitalRead(LED_PIN));
 }
 
 void setup()
 {
     delay(5000);
-    time_old = millis();
 
-    // pinMode(BTN_PIN, INPUT_PULLUP);
+    pinMode(BTN_PIN, INPUT_PULLUP);
     // 32U4 Interrupt pins 0, 1, 2, 3, 7
-    // attachInterrupt(digitalPinToInterrupt(BTN_PIN), interrupt_cb, LOW);
+    attachInterrupt(digitalPinToInterrupt(BTN_PIN), interrupt_cb, LOW);
 
     setup_radio();
 #ifdef PRINT
@@ -88,6 +82,6 @@ void setup()
 
 void loop()
 {
-    LowPower.powerDown(SLEEP_1S, ADC_OFF, BOD_OFF);
-    radioSend();
+    // TODO Test with this line only at setup
+    LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
 }
