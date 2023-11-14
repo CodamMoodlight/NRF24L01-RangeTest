@@ -8,19 +8,23 @@
 #define CE_PIN 7
 #define CSN_PIN 8
 
-#define BTN_PIN 0
 #define LED_PIN 9
+
 
 // #define PRINT
 
 RF24 radio(CE_PIN, CSN_PIN);
-float payload = 0.0;
 
 
-void radioSend()
+// 32U4 Interrupt pins 0, 1, 2, 3, 7
+int8_t BUTTONS[BUTTON_COUNT] {
+    0, 1, 2, 3
+};
+
+void radioSend(t_button btn)
 {
     // This device is a TX node
-    bool report = radio.write(&payload, sizeof(float)); // transmit & save the report
+    bool report = radio.write(&btn, sizeof(t_button)); // transmit & save the report
 
     if (report)
     {
@@ -30,7 +34,6 @@ void radioSend()
         Serial.print(F(" us. Sent: "));
         Serial.println(payload); // print payload sent
 #endif
-        payload += 0.01; // increment float payload
     }
     else
     {
@@ -59,19 +62,23 @@ void setup_radio()
     radio.openWritingPipe(RADIO_ADDR[ADDR_LED]); // always uses pipe 0
 }
 
-void interrupt_cb()
-{
-    radioSend();
-    digitalWrite(LED_PIN, !digitalRead(LED_PIN));
-}
+void button_1_cb() {radioSend(BUTTON_1);}
+void button_2_cb() {radioSend(BUTTON_2);}
+void button_3_cb() {radioSend(BUTTON_3);}
+void button_4_cb() {radioSend(BUTTON_4);}
 
 void setup()
 {
     delay(5000);
 
-    pinMode(BTN_PIN, INPUT_PULLUP);
-    // 32U4 Interrupt pins 0, 1, 2, 3, 7
-    attachInterrupt(digitalPinToInterrupt(BTN_PIN), interrupt_cb, LOW);
+    pinMode(BUTTONS[0], INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(BUTTONS[0]), button_1_cb, LOW);
+    pinMode(BUTTONS[1], INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(BUTTONS[1]), button_2_cb, LOW);
+    pinMode(BUTTONS[2], INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(BUTTONS[2]), button_3_cb, LOW);
+    pinMode(BUTTONS[3], INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(BUTTONS[3]), button_4_cb, LOW);
 
     setup_radio();
 #ifdef PRINT

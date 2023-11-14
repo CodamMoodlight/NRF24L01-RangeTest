@@ -10,6 +10,15 @@ typedef enum e_addreses
     ADDR_COUNT,
 } t_addreses;
 
+typedef enum e_button
+{
+    BUTTON_1,
+    BUTTON_2,
+    BUTTON_3,
+    BUTTON_4,
+    BUTTON_COUNT,
+} t_button;
+
 static const uint8_t RADIO_ADDR[ADDR_COUNT][6] = {
     "REM",
     "LED"
