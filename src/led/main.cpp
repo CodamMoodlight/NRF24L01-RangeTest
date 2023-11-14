@@ -50,8 +50,6 @@ Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire, OLED_RESET);
 RF24 radio(CE_PIN, CSN_PIN);
 
 t_ui main_ui;
-float payload = 0.0;
-
 
 
 void display_setup()
@@ -124,7 +122,7 @@ void setup()
 
     radio.setPALevel(RF24_PA_LOW); // RF24_PA_MAX is default.
     radio.setAddressWidth(3);
-    radio.setPayloadSize(sizeof(payload)); // float datatype occupies 4 bytes
+    radio.setPayloadSize(sizeof(t_button)); // float datatype occupies 4 bytes
 
     radio.openReadingPipe(0, RADIO_ADDR[ADDR_LED]); // using pipe 0
     radio.startListening(); // put radio in RX mode
@@ -142,17 +140,18 @@ void loop()
     uint8_t pipe;
     if (radio.available(&pipe))
     {
+        t_button data;
         uint8_t bytes = radio.getPayloadSize();
-        radio.read(&payload, bytes);
+        radio.read(&data, bytes);
         Serial.print(F("Received "));
         Serial.print(bytes);
         Serial.print(F(" bytes on pipe "));
         Serial.print(pipe);
         Serial.print(F(": "));
-        Serial.println(payload);
+        Serial.println(data);
 
         // when we receive signal update the `ui` struct with our `pin` variable as index.
-        display_update_ui(&main_ui, 0);
+        display_update_ui(&main_ui, data);
         // draw the ui with the updated fields.
         display_draw_ui(&main_ui);
     }

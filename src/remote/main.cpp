@@ -23,8 +23,9 @@ int8_t BUTTONS[BUTTON_COUNT] {
 
 void radioSend(t_button btn)
 {
+    t_button tmp = btn;
     // This device is a TX node
-    bool report = radio.write(&btn, sizeof(t_button)); // transmit & save the report
+    bool report = radio.write(&tmp, sizeof(t_button)); // transmit & save the report
 
     if (report)
     {
@@ -32,7 +33,7 @@ void radioSend(t_button btn)
         Serial.print(F("Transmission successful! ")); // payload was delivered
         Serial.print(F("Time to transmit = "));
         Serial.print(F(" us. Sent: "));
-        Serial.println(payload); // print payload sent
+        Serial.println(tmp); // print payload sent
 #endif
     }
     else
@@ -56,7 +57,7 @@ void setup_radio()
     }
     radio.setPALevel(RF24_PA_LOW); // RF24_PA_MAX is default.
     radio.setAddressWidth(3);
-    radio.setPayloadSize(sizeof(payload)); // float datatype occupies 4 bytes
+    radio.setPayloadSize(sizeof(t_button)); // float datatype occupies 4 bytes
 
     radio.stopListening();                       // put radio in TX mode
     radio.openWritingPipe(RADIO_ADDR[ADDR_LED]); // always uses pipe 0
