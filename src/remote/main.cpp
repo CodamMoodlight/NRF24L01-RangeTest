@@ -24,7 +24,9 @@ int8_t BUTTONS[BUTTON_COUNT] {
 void radioSend(t_button btn)
 {
     t_button tmp = btn;
-    // This device is a TX node
+    radio.powerUp();
+
+
     bool report = radio.write(&tmp, sizeof(t_button)); // transmit & save the report
 
     if (report)
@@ -42,6 +44,7 @@ void radioSend(t_button btn)
         Serial.println(F("Transmission failed or timed out")); // payload was not delivered
 #endif
     }
+    radio.powerDown();
 }
 
 void setup_radio()
@@ -82,6 +85,7 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(BUTTONS[3]), button_4_cb, LOW);
 
     setup_radio();
+    radio.powerDown();
 #ifdef PRINT
     Serial.begin(115200);
 #endif
@@ -90,6 +94,5 @@ void setup()
 
 void loop()
 {
-    // TODO Test with this line only at setup
-    LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
+    LowPower.powerDown(SLEEP_FOREVER, ADC_ON, BOD_OFF);
 }
