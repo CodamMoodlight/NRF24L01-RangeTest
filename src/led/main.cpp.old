@@ -106,46 +106,6 @@ void display_draw_ui(t_ui *ui)
     display.display();
 }
 
-
-enum PINOUT {
-    PIN_LED_RED,
-    PIN_LED_GREEN,
-    PIN_LED_BLUE,
-    PIN_LED_WHITE,
-    PIN_COUNT,
-};
-
-typedef struct {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    uint8_t w;
-} ColorRBGW;
-
-const static int PINOUT[PIN_COUNT] = {
-    [PIN_LED_RED] = 9,
-    [PIN_LED_GREEN] = 10,
-    [PIN_LED_BLUE] = 5,
-    [PIN_LED_WHITE] = 6,
-};
-
-void set_pwm(ColorRBGW c)
-{
-    uint8_t *base = &c.r;
-    for (size_t i = 0; i < PIN_COUNT; i++)
-    {
-        uint8_t color = (uint8_t) base[i];
-        analogWrite(PINOUT[i], color);
-
-#ifdef DEBUG
-        Serial.print("writing to pin: ");
-        Serial.print(PINOUT[i]);
-        Serial.print(" with value: ");
-        Serial.println(color);
-#endif
-    }
-}
-
 void setup()
 {
     Serial.begin(115200);
@@ -173,10 +133,6 @@ void setup()
     // printf_begin();             // needed only once for printing details
     // radio.printDetails();       // (smaller) function that prints raw register values
     // radio.printPrettyDetails(); // (larger) function that prints human readable data
-    t_button data;
-    data = BUTTON_3;
-    display_update_ui(&main_ui, data);
-    display_draw_ui(&main_ui);
 }
 
 void loop()
