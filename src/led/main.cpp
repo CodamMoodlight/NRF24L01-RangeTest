@@ -50,7 +50,7 @@ Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire, OLED_RESET);
 RF24 radio(CE_PIN, CSN_PIN);
 
 t_ui main_ui;
-
+t_button state;
 
 void display_setup()
 {
@@ -129,6 +129,13 @@ const static int PINOUT[PIN_COUNT] = {
     [PIN_LED_WHITE] = 6,
 };
 
+const static ColorRBGW PROFILES[] = {
+    {255, 0, 0, 0},
+    {0, 255, 0, 0},
+    {0, 0, 255, 0},
+    {0, 0, 0, 255},
+};
+
 void set_pwm(ColorRBGW c)
 {
     uint8_t *base = &c.r;
@@ -173,11 +180,8 @@ void setup()
     // printf_begin();             // needed only once for printing details
     // radio.printDetails();       // (smaller) function that prints raw register values
     // radio.printPrettyDetails(); // (larger) function that prints human readable data
-    t_button data;
-    data = BUTTON_3;
-    display_update_ui(&main_ui, data);
-    display_draw_ui(&main_ui);
 }
+
 
 void loop()
 {
@@ -193,6 +197,18 @@ void loop()
         Serial.print(pipe);
         Serial.print(F(": "));
         Serial.println(data);
+
+        
+        if (data == state)
+        {
+            set_pwm({0, 0, 0, 0});
+            state = (t_button) 10;
+        }
+        else
+        {
+            set_pwm(PROFILES[data]);
+            state = data;
+        }
 
         // when we receive signal update the `ui` struct with our `pin` variable as index.
         display_update_ui(&main_ui, data);
