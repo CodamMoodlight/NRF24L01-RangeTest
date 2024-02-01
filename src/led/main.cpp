@@ -4,6 +4,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "config.h"
+#include <SD.h>
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 32 
@@ -15,8 +16,10 @@
 #define PIN_RADIO_D2 8
 #define PIN_RADIO_D3 9
 
-#define CE_PIN 7
-#define CSN_PIN 8
+#define RADIO_CE_PIN 7
+#define RADIO_CSN_PIN 8
+
+#define SD_CE_PIN 4
 
 #define ARRAY_SIZE(x) ((sizeof x) / (sizeof *x))
 
@@ -47,7 +50,7 @@ typedef uint32_t t_pin;
 
 
 Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire, OLED_RESET);
-RF24 radio(CE_PIN, CSN_PIN);
+RF24 radio(RADIO_CE_PIN, RADIO_CSN_PIN);
 
 t_ui main_ui;
 t_button state;
@@ -130,10 +133,10 @@ const static int PINOUT[PIN_COUNT] = {
 };
 
 const static ColorRBGW PROFILES[] = {
-    {255, 0, 0, 0},
-    {0, 255, 0, 0},
-    {0, 0, 255, 0},
-    {0, 0, 0, 255},
+    {100, 0, 0, 0},
+    {0, 100, 0, 0},
+    {0, 0, 100, 0},
+    {0, 0, 0, 100},
 };
 
 void set_pwm(ColorRBGW c)
@@ -157,16 +160,72 @@ void setup()
 {
     Serial.begin(115200);
 
+ 
+    
+    
+    delay(2000);
+
+    // Set LED PWM pins to output.
+    for (size_t i = 0; i < PIN_COUNT; i++)
+    {
+        pinMode(PINOUT[i], OUTPUT);
+    }
+    // Set SPI Chip select pins to output.
+    pinMode(RADIO_CSN_PIN, OUTPUT);
+    pinMode(SD_CHIP_SELECT_PIN, OUTPUT);
+    
+
+    Serial.println(F_CPU);
+
+    Serial.println("starting prog");
+
     display_init_ui(&main_ui, PIN_NAMES);
     display_setup();
-    
+
+    t_pin data = 3;
+    display_update_ui(&main_ui, data);
+    display_draw_ui(&main_ui);
+
+    /** Set SCK rate to F_CPU/4. See Sd2Card::setSckRate(). */
+    // uint8_t const SPI_HALF_SPEED = 1;
+
+    // RF24 = 10000000hz
+    if (!SD.begin(SD_CE_PIN))
+    {
+        Serial.println("initialization failed. Things to check:");
+        Serial.println("1. is a card inserted?");
+        Serial.println("2. is your wiring correct?");
+        Serial.println("3. did you change the chipSelect pin to match your shield or module?");
+        Serial.println("Note: press reset button on the board and reopen this Serial Monitor after fixing your issue!");
+        while (true);
+    }
+
+    Serial.println("SD CARD READY");
+
+    Serial.println("Dumping file content");
+
+    delay(5000);
+    File f = SD.open("preset_1.txt");
+    if (f)
+    {
+        while (f.available())
+        {
+            Serial.print(f.readStringUntil('\0'));
+        }
+        f.close();
+    }
+    else
+        Serial.println("Error opening file");
+
+    delay(5000);
+
 
     if (!radio.begin())
     {
         Serial.println(F("radio hardware is not responding!!"));
         while (1);
     }
-
+    delay(100);
     radio.setPALevel(RF24_PA_LOW); // RF24_PA_MAX is default.
     radio.setAddressWidth(3);
     radio.setPayloadSize(sizeof(t_button)); // float datatype occupies 4 bytes
@@ -177,9 +236,6 @@ void setup()
     Serial.println("setup DONE!");
 
     // For debugging info
-    // printf_begin();             // needed only once for printing details
-    // radio.printDetails();       // (smaller) function that prints raw register values
-    // radio.printPrettyDetails(); // (larger) function that prints human readable data
 }
 
 
