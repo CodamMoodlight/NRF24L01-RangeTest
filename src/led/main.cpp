@@ -6,6 +6,8 @@
 #include "config.h"
 #include <SD.h>
 
+// #define HAS_LCD
+
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 32 
 #define OLED_RESET -1
@@ -16,10 +18,10 @@
 #define PIN_RADIO_D2 8
 #define PIN_RADIO_D3 9
 
-#define RADIO_CE_PIN 7
-#define RADIO_CSN_PIN 8
+#define RADIO_CE_PIN 19
+#define RADIO_CSN_PIN 18
 
-#define SD_CE_PIN 4
+#define SD_CE_PIN 8
 
 #define ARRAY_SIZE(x) ((sizeof x) / (sizeof *x))
 
@@ -49,7 +51,9 @@ typedef struct s_ui {
 typedef uint32_t t_pin;
 
 
+#ifndef HAS_LCD
 Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire, OLED_RESET);
+#endif
 RF24 radio(RADIO_CE_PIN, RADIO_CSN_PIN);
 
 t_ui main_ui;
@@ -158,12 +162,11 @@ void set_pwm(ColorRBGW c)
 
 void setup()
 {
-    Serial.begin(115200);
 
- 
-    
-    
+#ifdef DEBUG
+    Serial.begin(115200);
     delay(2000);
+#endif
 
     // Set LED PWM pins to output.
     for (size_t i = 0; i < PIN_COUNT; i++)
@@ -174,17 +177,19 @@ void setup()
     pinMode(RADIO_CSN_PIN, OUTPUT);
     pinMode(SD_CHIP_SELECT_PIN, OUTPUT);
     
-
+#ifdef DEBUG
+    t_pin data = 3;
     Serial.println(F_CPU);
-
     Serial.println("starting prog");
-
+#endif
+#ifdef HAS_LCD
     display_init_ui(&main_ui, PIN_NAMES);
     display_setup();
 
-    t_pin data = 3;
     display_update_ui(&main_ui, data);
     display_draw_ui(&main_ui);
+#endif
+
 
     /** Set SCK rate to F_CPU/4. See Sd2Card::setSckRate(). */
     // uint8_t const SPI_HALF_SPEED = 1;
@@ -192,19 +197,21 @@ void setup()
     // RF24 = 10000000hz
     if (!SD.begin(SD_CE_PIN))
     {
+        // TODO Flash led
+#ifdef DEBUG
         Serial.println("initialization failed. Things to check:");
         Serial.println("1. is a card inserted?");
         Serial.println("2. is your wiring correct?");
         Serial.println("3. did you change the chipSelect pin to match your shield or module?");
         Serial.println("Note: press reset button on the board and reopen this Serial Monitor after fixing your issue!");
+#endif
         while (true);
     }
-
+#ifdef DEBUG
     Serial.println("SD CARD READY");
-
     Serial.println("Dumping file content");
-
-    delay(5000);
+#endif
+    delay(100);
     File f = SD.open("preset_1.txt");
     if (f)
     {
@@ -217,7 +224,7 @@ void setup()
     else
         Serial.println("Error opening file");
 
-    delay(5000);
+    delay(100);
 
 
     if (!radio.begin())
@@ -266,9 +273,11 @@ void loop()
             state = data;
         }
 
+#ifdef HAS_LCD
         // when we receive signal update the `ui` struct with our `pin` variable as index.
         display_update_ui(&main_ui, data);
         // draw the ui with the updated fields.
         display_draw_ui(&main_ui);
+#endif
     }
 }
