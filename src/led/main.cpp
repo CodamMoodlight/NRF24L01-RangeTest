@@ -6,7 +6,7 @@
 #include "config.h"
 #include <SD.h>
 
-// #define HAS_LCD
+#define HAS_LCD
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 32 
@@ -51,7 +51,7 @@ typedef struct s_ui {
 typedef uint32_t t_pin;
 
 
-#ifndef HAS_LCD
+#ifdef HAS_LCD
 Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire, OLED_RESET);
 #endif
 RF24 radio(RADIO_CE_PIN, RADIO_CSN_PIN);
@@ -59,6 +59,7 @@ RF24 radio(RADIO_CE_PIN, RADIO_CSN_PIN);
 t_ui main_ui;
 t_button state;
 
+#ifdef HAS_LCD
 void display_setup()
 {
     if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
@@ -112,7 +113,7 @@ void display_draw_ui(t_ui *ui)
     // update display
     display.display();
 }
-
+#endif
 
 enum PINOUT {
     PIN_LED_RED,
@@ -130,9 +131,9 @@ typedef struct {
 } ColorRBGW;
 
 const static int PINOUT[PIN_COUNT] = {
-    [PIN_LED_RED] = 9,
+    [PIN_LED_RED] = 5,
     [PIN_LED_GREEN] = 10,
-    [PIN_LED_BLUE] = 5,
+    [PIN_LED_BLUE] = 9,
     [PIN_LED_WHITE] = 6,
 };
 
@@ -178,11 +179,11 @@ void setup()
     pinMode(SD_CHIP_SELECT_PIN, OUTPUT);
     
 #ifdef DEBUG
-    t_pin data = 3;
     Serial.println(F_CPU);
     Serial.println("starting prog");
 #endif
 #ifdef HAS_LCD
+    t_pin data = 3;
     display_init_ui(&main_ui, PIN_NAMES);
     display_setup();
 
