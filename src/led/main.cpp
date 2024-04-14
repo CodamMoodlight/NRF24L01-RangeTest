@@ -4,9 +4,15 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "config.h"
-#include <SD.h>
+
+
+// NOTE: Change this value depending on what light you're building the firmware for.
+// #define CURRENT_READING_PIPE ADDR_LED_1
+#define CURRENT_READING_PIPE ADDR_LED_2
+// #define CURRENT_READING_PIPE ADDR_LED_3
 
 #define HAS_LCD
+#define DEBUG
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 32 
@@ -137,10 +143,18 @@ const static int PINOUT[PIN_COUNT] = {
     [PIN_LED_WHITE] = 6,
 };
 
+
+// const static ColorRBGW PROFILES[] = {
+//     {0, 0, 0, 50}, //power: white
+//     {0, 100, 0, 0}, //live: green
+//     {100, 0, 0, 0}, //recording: red
+//     {0, 0, 100, 0}, //quiet: blue
+// };
+
 const static ColorRBGW PROFILES[] = {
     {100, 0, 0, 0},
-    {0, 100, 0, 0},
-    {0, 0, 100, 0},
+    {10, 100, 0, 0},
+    {0, 25, 100, 0},
     {0, 0, 0, 100},
 };
 
@@ -176,7 +190,6 @@ void setup()
     }
     // Set SPI Chip select pins to output.
     pinMode(RADIO_CSN_PIN, OUTPUT);
-    pinMode(SD_CHIP_SELECT_PIN, OUTPUT);
     
 #ifdef DEBUG
     Serial.println(F_CPU);
@@ -196,37 +209,7 @@ void setup()
     // uint8_t const SPI_HALF_SPEED = 1;
 
     // RF24 = 10000000hz
-    if (!SD.begin(SD_CE_PIN))
-    {
-        // TODO Flash led
-#ifdef DEBUG
-        Serial.println("initialization failed. Things to check:");
-        Serial.println("1. is a card inserted?");
-        Serial.println("2. is your wiring correct?");
-        Serial.println("3. did you change the chipSelect pin to match your shield or module?");
-        Serial.println("Note: press reset button on the board and reopen this Serial Monitor after fixing your issue!");
-#endif
-        while (true);
-    }
-#ifdef DEBUG
-    Serial.println("SD CARD READY");
-    Serial.println("Dumping file content");
-#endif
     delay(100);
-    File f = SD.open("preset_1.txt");
-    if (f)
-    {
-        while (f.available())
-        {
-            Serial.print(f.readStringUntil('\0'));
-        }
-        f.close();
-    }
-    else
-        Serial.println("Error opening file");
-
-    delay(100);
-
 
     if (!radio.begin())
     {
@@ -238,7 +221,7 @@ void setup()
     radio.setAddressWidth(3);
     radio.setPayloadSize(sizeof(t_button)); // float datatype occupies 4 bytes
 
-    radio.openReadingPipe(0, RADIO_ADDR[ADDR_LED]); // using pipe 0
+    radio.openReadingPipe(0, RADIO_ADDR[CURRENT_READING_PIPE]); // using pipe 0
     radio.startListening(); // put radio in RX mode
 
     Serial.println("setup DONE!");

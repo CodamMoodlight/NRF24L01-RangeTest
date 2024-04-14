@@ -11,6 +11,7 @@
 
 
 // #define PRINT
+#define LED_COUNT 2
 
 RF24 radio(CE_PIN, CSN_PIN);
 
@@ -58,31 +59,31 @@ void radioSend(t_button btn)
     t_button tmp = btn;
     disable_interrupts();
     radio.powerUp();
-
-
-    bool report = radio.write(&tmp, sizeof(t_button)); // transmit & save the report
-
-    if (report)
+    for (size_t i = 0; i < LED_COUNT; i++)
     {
+        // go from index `ADDR_LED_1` to `i`
+        radio.openWritingPipe(RADIO_ADDR[1 + i]);
+        bool report = radio.write(&tmp, sizeof(t_button)); // transmit & save the report
 #ifdef PRINT
-        Serial.print(F("Transmission successful! ")); // payload was delivered
-        Serial.print(F("Time to transmit = "));
-        Serial.print(F(" us. Sent: "));
-        Serial.println(tmp); // print payload sent
+        if (report)
+        {
+            Serial.print(F("Transmission successful! ")); // payload was delivered
+            Serial.print(F("Time to transmit = "));
+            Serial.print(F(" us. Sent: "));
+            Serial.println(tmp); // print payload sent
+        }
+        else
+        {
+            Serial.println(F("Transmission failed or timed out")); // payload was not delivered
+        }
+        Serial.print("counter: ");
+        Serial.println(counter);
+        counter++;
 #endif
+        delay(50);
     }
-    else
-    {
-#ifdef PRINT
-        Serial.println(F("Transmission failed or timed out")); // payload was not delivered
-#endif
-        Serial.println(F("Transmission failed or timed out")); // payload was not delivered
-    }
-#ifdef PRINT
-    Serial.print("counter: ");
-    Serial.println(counter);
-    counter++;
-#endif
+    
+
     radio.powerDown();
     enable_interrupts();
 }
@@ -102,7 +103,7 @@ void setup_radio()
     radio.setPayloadSize(sizeof(t_button));
 
     radio.stopListening();                       // put radio in TX mode
-    radio.openWritingPipe(RADIO_ADDR[ADDR_LED]); // always uses pipe 0
+    radio.openWritingPipe(RADIO_ADDR[ADDR_LED_1]);
 }
 
 // Gnarly callbacks, but for now this is the easiest way to pass which button has been pressed.

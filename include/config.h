@@ -6,7 +6,9 @@
 typedef enum e_addreses
 {
     ADDR_REMOTE,
-    ADDR_LED,
+    ADDR_LED_1,
+    ADDR_LED_2,
+    ADDR_LED_3,
     ADDR_COUNT,
 } t_addreses;
 
@@ -21,7 +23,9 @@ typedef enum e_button
 
 static const uint8_t RADIO_ADDR[ADDR_COUNT][6] = {
     "REM",
-    "LED"
+    "LD1",
+    "LD2",
+    "LD3",
 };
 
 
