@@ -11,7 +11,7 @@
 
 
 // #define PRINT
-#define LED_COUNT 2
+#define LED_COUNT 3
 
 RF24 radio(CE_PIN, CSN_PIN);
 

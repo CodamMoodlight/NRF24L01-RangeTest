@@ -6,14 +6,6 @@
 #include "config.h"
 
 
-// NOTE: Change this value depending on what light you're building the firmware for.
-// #define CURRENT_READING_PIPE ADDR_LED_1
-#define CURRENT_READING_PIPE ADDR_LED_2
-// #define CURRENT_READING_PIPE ADDR_LED_3
-
-#define HAS_LCD
-#define DEBUG
-
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 32 
 #define OLED_RESET -1
@@ -151,6 +143,7 @@ const static int PINOUT[PIN_COUNT] = {
 //     {0, 0, 100, 0}, //quiet: blue
 // };
 
+// Values can be from 0-255
 const static ColorRBGW PROFILES[] = {
     {100, 0, 0, 0},
     {10, 100, 0, 0},
@@ -213,8 +206,23 @@ void setup()
 
     if (!radio.begin())
     {
+#ifdef DEBUG
         Serial.println(F("radio hardware is not responding!!"));
-        while (1);
+#endif
+        while (1)
+        {
+            for (size_t i = 0; i < PIN_COUNT; i++)
+            {
+                analogWrite(PINOUT[i], 0);
+            }
+            delay(500);
+            for (size_t i = 0; i < PIN_COUNT; i++)
+            {
+                analogWrite(PINOUT[i], 255);
+            }
+            delay(500);
+        }
+
     }
     delay(100);
     radio.setPALevel(RF24_PA_LOW); // RF24_PA_MAX is default.
@@ -224,7 +232,9 @@ void setup()
     radio.openReadingPipe(0, RADIO_ADDR[CURRENT_READING_PIPE]); // using pipe 0
     radio.startListening(); // put radio in RX mode
 
+#ifdef DEBUG
     Serial.println("setup DONE!");
+#endif
 
     // For debugging info
 }
@@ -238,12 +248,14 @@ void loop()
         t_button data;
         uint8_t bytes = radio.getPayloadSize();
         radio.read(&data, bytes);
+#ifdef DEBUG
         Serial.print(F("Received "));
         Serial.print(bytes);
         Serial.print(F(" bytes on pipe "));
         Serial.print(pipe);
         Serial.print(F(": "));
         Serial.println(data);
+#endif
 
         
         if (data == state)
