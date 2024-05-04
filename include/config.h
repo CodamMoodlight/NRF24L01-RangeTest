@@ -8,8 +8,8 @@
 // Light fixture macros //
 /************************/
 // Change this value depending on what light you're building the firmware for.
-// #define CURRENT_READING_PIPE ADDR_LED_1
-#define CURRENT_READING_PIPE ADDR_LED_2
+#define CURRENT_READING_PIPE ADDR_LED_1
+// #define CURRENT_READING_PIPE ADDR_LED_2
 // #define CURRENT_READING_PIPE ADDR_LED_3
 
 // #define HAS_LCD

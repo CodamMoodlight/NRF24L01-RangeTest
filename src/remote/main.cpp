@@ -98,7 +98,7 @@ void setup_radio()
 #endif
     }
     // TODO Test powerlevels.
-    radio.setPALevel(RF24_PA_LOW);
+    radio.setPALevel(RF24_PA_HIGH);
     radio.setAddressWidth(3);
     radio.setPayloadSize(sizeof(t_button));
 

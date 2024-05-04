@@ -225,7 +225,7 @@ void setup()
 
     }
     delay(100);
-    radio.setPALevel(RF24_PA_LOW); // RF24_PA_MAX is default.
+    radio.setPALevel(RF24_PA_HIGH); // RF24_PA_MAX is default.
     radio.setAddressWidth(3);
     radio.setPayloadSize(sizeof(t_button)); // float datatype occupies 4 bytes
 
