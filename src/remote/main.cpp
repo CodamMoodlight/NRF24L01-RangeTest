@@ -32,10 +32,13 @@ const isr_func *ISR_FUNCS[BUTTON_COUNT] = {
 
 
 const int8_t BUTTONS[BUTTON_COUNT] {
-    5, 6, 7, 8
+    5, 6, 7, 9
 };
 
 int counter = 0;
+
+// BUTTON_COUNT is our non-button pressed state
+t_button pressed_button = BUTTON_COUNT;
 
 void disable_interrupts()
 {
@@ -57,7 +60,7 @@ void enable_interrupts()
 void radioSend(t_button btn)
 {
     t_button tmp = btn;
-    disable_interrupts();
+    // disable_interrupts();
     radio.powerUp();
     for (size_t i = 0; i < LED_COUNT; i++)
     {
@@ -80,12 +83,12 @@ void radioSend(t_button btn)
         Serial.println(counter);
         counter++;
 #endif
-        delay(50);
+        delay(5);
     }
     
 
     radio.powerDown();
-    enable_interrupts();
+    // enable_interrupts();
 }
 
 void setup_radio()
@@ -106,11 +109,22 @@ void setup_radio()
     radio.openWritingPipe(RADIO_ADDR[ADDR_LED_1]);
 }
 
+void wakeup(t_button x)
+{
+   pressed_button = x; 
+}
+
+
 // Gnarly callbacks, but for now this is the easiest way to pass which button has been pressed.
-void button_1_cb() {radioSend(BUTTON_1);}
-void button_2_cb() {radioSend(BUTTON_2);}
-void button_3_cb() {radioSend(BUTTON_3);}
-void button_4_cb() {radioSend(BUTTON_4);}
+// void button_1_cb() {radioSend(BUTTON_1);}
+// void button_2_cb() {radioSend(BUTTON_2);}
+// void button_3_cb() {radioSend(BUTTON_3);}
+// void button_4_cb() {radioSend(BUTTON_4);}
+
+void button_1_cb() {wakeup(BUTTON_1);}
+void button_2_cb() {wakeup(BUTTON_2);}
+void button_3_cb() {wakeup(BUTTON_3);}
+void button_4_cb() {wakeup(BUTTON_4);}
 
 void setup()
 {
@@ -144,5 +158,18 @@ void setup()
 
 void loop()
 {
+    enable_interrupts();
+
     LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
+
+    disable_interrupts();
+
+    if (pressed_button != BUTTON_COUNT)
+    {
+        radioSend(pressed_button);
+        delay(100);
+    }
+
+    pressed_button = BUTTON_COUNT;
+
 }
