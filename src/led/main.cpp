@@ -276,7 +276,8 @@ void loop()
         // Serial.print(F(" bytes on pipe "));
         // Serial.print(pipe);
         // Serial.print(F(": "));
-        // Serial.println(payload);
+        Serial.print("ray payload: ");
+        Serial.println(payload);
 
         print_payload("received payload: ", payload);
 
