@@ -13,7 +13,7 @@
 // #define CURRENT_READING_PIPE ADDR_LED_3
 
 // #define HAS_LCD
-#define DEBUG
+// #define DEBUG
 /************************/
 
 
@@ -49,5 +49,39 @@ static const uint8_t RADIO_ADDR[ADDR_COUNT][6] = {
 
 // Use a `t_payload` type for sending our data.
 typedef uint8_t t_payload;
+
+typedef enum e_command
+{
+	COMMAND_BUTTON_1 = 0,
+	COMMAND_BUTTON_2 = 1,
+	COMMAND_BUTTON_3 = 2,
+	COMMAND_BUTTON_4 = 3,
+    COMMAND_COUNT,
+} t_command;
+
+typedef enum e_device {
+	DEVICE_LD1 = (1U << 0),
+	DEVICE_LD2 = (1U << 1),
+	DEVICE_LD3 = (1U << 2),
+} t_device;
+
+
+
+
+t_payload set_payload(t_command cmd, t_device devices)
+{
+	return (cmd << 4) | devices;
+}
+
+t_command get_command(t_payload p)
+{
+	return (t_command) (p >> 4);
+}
+
+t_device get_devices(t_payload p)
+{
+	return (t_device) (p & 15);
+}
+
 
 #endif

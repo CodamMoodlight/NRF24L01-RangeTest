@@ -59,8 +59,7 @@ void enable_interrupts()
 
 void radioSend(t_button btn)
 {
-    t_payload payload = (uint8_t) counter++;
-    // disable_interrupts();
+    t_payload payload = set_payload((t_command)(btn), (t_device) (DEVICE_LD1 | DEVICE_LD3));
     radio.powerUp();
     for (size_t i = 0; i < LED_COUNT; i++)
     {
@@ -69,10 +68,7 @@ void radioSend(t_button btn)
         bool report = radio.write(&payload, sizeof(t_payload));
         delay(5);
     }
-    
-
     radio.powerDown();
-    // enable_interrupts();
 }
 
 void setup_radio()

@@ -5,6 +5,7 @@
 #include <Adafruit_SSD1306.h>
 #include "config.h"
 
+#define DEBUG
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 32 
@@ -245,16 +246,28 @@ void loop()
     uint8_t pipe;
     if (radio.available(&pipe))
     {
-        t_payload data;
+        t_payload payload;
         uint8_t bytes = radio.getPayloadSize();
-        radio.read(&data, bytes);
+        radio.read(&payload, bytes);
 #ifdef DEBUG
         Serial.print(F("Received "));
         Serial.print(bytes);
         Serial.print(F(" bytes on pipe "));
         Serial.print(pipe);
         Serial.print(F(": "));
-        Serial.println(data);
+        Serial.println(payload);
+
+
+        Serial.print("command: ");
+        Serial.print(get_command(payload));
+        Serial.print(" | devices: ");
+        Serial.println(get_devices(payload));
+        Serial.println();
+        Serial.println();
+        Serial.println();
+
+
+
 #endif
 
 
