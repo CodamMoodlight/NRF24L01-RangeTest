@@ -307,36 +307,42 @@ void loop()
 
         radio.closeReadingPipe(pipe);
         radio.stopListening();
-        for (size_t i = 1; i < 5; i++)
+        for (size_t i = 0; i < 4; i++)
         {
             // NOTE!?!?!? while testing disable the other litterally unreachable devices.
             // TODO REMOVE THIS IN PRODUCTION!
-            if (i != 4)
+            if (i != 3)
                 continue;
 
             if (!(devices & masks[i]))
             {
-                Serial.print("Payload not send to the value at index: ");
-                Serial.println(i);
-                if (!radio_send_payload(RADIO_ADDR[i], payload))
+                const uint8_t index = i + 1;
+                Serial.print("Payload not yet send to the addres at index: ");
+                Serial.println(index);
+                if (!radio_send_payload(RADIO_ADDR[index], payload))
                 {
                     Serial.print("Failed sending payload to: ");
-                    Serial.println(i);
+                    Serial.println(index);
                 }
                 else
                 {
-                    Serial.println("Radio received payload");
+                    Serial.println("Transmission successful!");
                 }
             }
         }
+        // There was a problem with radio.available triggering right after we had send our payload.
+        // This fixes that by flushing the buffer
+        radio.flush_rx();
         setup_radio_listen();
-        Serial.println();
 
 
 
         // if (our shit is already received in the original payload only forward it)
         set_pwm(PROFILES[cmd]);
 
+        Serial.println();
+        Serial.println();
+        Serial.println();
 
 
 
@@ -349,4 +355,5 @@ void loop()
         display_draw_ui(&main_ui);
 #endif
     }
+    delay(5);
 }
