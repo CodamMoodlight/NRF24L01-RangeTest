@@ -29,14 +29,14 @@ typedef enum e_addreses
     ADDR_COUNT,
 } t_addreses;
 
-// typedef enum e_button
-// {
-//     BUTTON_1,
-//     BUTTON_2,
-//     BUTTON_3,
-//     BUTTON_4,
-//     BUTTON_COUNT,
-// } t_button;
+typedef enum e_button_old
+{
+    BUTTON_OLD_1,
+    BUTTON_OLD_2,
+    BUTTON_OLD_3,
+    BUTTON_OLD_4,
+    BUTTON_OLD_COUNT,
+} t_button_old;
 
 // Due to garbage values and because of `setAddressWidth(3);` address "names" have to be 3 chars long.
 static const uint8_t RADIO_ADDR[ADDR_COUNT][6] = {
@@ -49,7 +49,8 @@ static const uint8_t RADIO_ADDR[ADDR_COUNT][6] = {
 
 // Use a `t_payload` type for sending our data.
 // This payload will be constructed `t_button` and `t_device`
-typedef uint8_t t_payload;
+// typedef uint8_t t_payload;
+typedef uint16_t t_payload;
 
 // the payload looks like: 0b0000 0000
 // where the first nibble contains the `t_button` bits, and the last the `t_device` where the light fixture will set its bit if it has received the payload.

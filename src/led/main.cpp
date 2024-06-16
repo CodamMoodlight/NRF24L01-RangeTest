@@ -175,6 +175,10 @@ void setup()
     Serial.begin(115200);
 #endif
 
+    int32_t size = sizeof(t_payload);
+    Serial.print("sizeof(t_payload): ");
+    Serial.println(size);
+
     // Set LED PWM pins to output.
     for (size_t i = 0; i < PIN_COUNT; i++)
     {
@@ -231,7 +235,6 @@ void setup()
     Serial.println("setup DONE!");
 #endif
 
-    // For debugging info
 }
 
 
@@ -255,13 +258,13 @@ void loop()
 
         uint8_t num = 0;
         t_button button = get_button(payload);
-        while (((button >> num) & 0x1) == 0)
-        {
-            num++;
-            if (num > 8)
-                break;
-                // TODO Handle error
-        }
+        // while (((button >> num) & 0x1) == 0)
+        // {
+        //     num++;
+        //     if (num > 8)
+        //         break;
+        //         // TODO Handle error
+        // }
 
 #ifdef DEBUG
 
