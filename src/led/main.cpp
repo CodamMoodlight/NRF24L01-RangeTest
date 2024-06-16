@@ -140,7 +140,7 @@ const static ColorRBGW PROFILES[] = {
     {0, 0, 0, 50}, //power: white
     {0, 100, 0, 0}, //live: green
     {100, 0, 0, 0}, //recording: red
-    {15, 40, 255, 0}, //quiet: blue
+    {15, 255, 255, 0}, //quiet: blue
 };
 
 // Values can be from 0-255
