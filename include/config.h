@@ -40,11 +40,12 @@ typedef enum e_button
 } t_button;
 
 // Due to garbage values and because of `setAddressWidth(3);` address "names" have to be 3 chars long.
-static const uint8_t RADIO_ADDR[ADDR_COUNT][6] = {
+static const uint8_t RADIO_ADDR[ADDR_COUNT + 1][6] = {
     "REM",
     "LD1",
     "LD2",
     "LD3",
+    "TST",
 };
 
 
