@@ -8,10 +8,10 @@
 // Light fixture macros //
 /************************/
 // Change this value depending on what light you're building the firmware for.
-// #define CURRENT_READING_PIPE ADDR_LED_1
+#define CURRENT_READING_PIPE ADDR_LED_1
 // #define CURRENT_READING_PIPE ADDR_LED_2
 // #define CURRENT_READING_PIPE ADDR_LED_3
-#define CURRENT_READING_PIPE ADDR_TEST
+// #define CURRENT_READING_PIPE ADDR_TEST
 
 // #define HAS_LCD
 // #define DEBUG
@@ -70,6 +70,7 @@ typedef enum e_device {
 	DEVICE_LD1 = (1U << 0),
 	DEVICE_LD2 = (1U << 1),
 	DEVICE_LD3 = (1U << 2),
+	DEVICE_TEST = (1U << 3),
 } t_device;
 
 

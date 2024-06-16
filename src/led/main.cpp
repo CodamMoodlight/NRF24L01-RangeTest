@@ -143,14 +143,6 @@ const static ColorRBGW PROFILES[] = {
     {15, 80, 200, 0}, //quiet: blue
 };
 
-// Values can be from 0-255
-// const static ColorRBGW PROFILES[] = {
-//     {100, 0, 0, 0},
-//     {10, 100, 0, 0},
-//     {0, 25, 100, 0},
-//     {0, 0, 0, 100},
-// };
-
 void set_pwm(ColorRBGW c)
 {
     uint8_t *base = &c.r;
@@ -204,11 +196,6 @@ void setup()
     display_draw_ui(&main_ui);
 #endif
 
-
-    /** Set SCK rate to F_CPU/4. See Sd2Card::setSckRate(). */
-    // uint8_t const SPI_HALF_SPEED = 1;
-
-    // RF24 = 10000000hz
     delay(100);
 
     if (!radio.begin())
@@ -254,7 +241,25 @@ t_device get_current_device(uint8_t cur_dev)
         return (DEVICE_LD2);
     if (cur_dev == 3)
         return (DEVICE_LD3);
+    if (cur_dev == 4)
+        return (DEVICE_TEST);
 }
+
+void print_payload(const char *text, t_payload payload)
+{
+    Serial.print(text);
+    Serial.print("command: ");
+    Serial.print(get_command(payload));
+    Serial.print(" | devices: ");
+    Serial.println(get_devices(payload));
+}
+
+bool radio_send_payload(const uint8_t *addr, t_payload payload)
+{
+    radio.openWritingPipe(addr);
+    return radio.write(&payload, sizeof(t_payload));
+}
+
 
 
 void loop()
@@ -266,33 +271,67 @@ void loop()
         uint8_t bytes = radio.getPayloadSize();
         radio.read(&payload, bytes);
 #ifdef DEBUG
-        Serial.print(F("Received "));
-        Serial.print(bytes);
-        Serial.print(F(" bytes on pipe "));
-        Serial.print(pipe);
-        Serial.print(F(": "));
-        Serial.println(payload);
+        // Serial.print(F("Received "));
+        // Serial.print(bytes);
+        // Serial.print(F(" bytes on pipe "));
+        // Serial.print(pipe);
+        // Serial.print(F(": "));
+        // Serial.println(payload);
+
+        print_payload("received payload: ", payload);
 
 
-        Serial.print("command: ");
-        Serial.print(get_command(payload));
-        Serial.print(" | devices: ");
-        Serial.println(get_devices(payload));
         Serial.println();
 
 #endif
 
         t_command cmd = get_command(payload);
-        t_device devices = get_devices(payload);
+        t_device devices = (t_device) ((uint8_t) (payload) | get_current_device(CURRENT_READING_PIPE));
         
-        t_payload forward_payload = set_payload(cmd, (t_device) (devices | get_current_device(CURRENT_READING_PIPE)));
+        t_payload forward_payload = set_payload(cmd, devices);
 
-        Serial.print("forward payload: ");
-        Serial.println(forward_payload);
+
+        print_payload("forward payload: ", forward_payload);
 
         Serial.println();
+
+        
+
+        // dirty but simple
+        const uint8_t masks[4] = {
+            DEVICE_LD1,
+            DEVICE_LD2,
+            DEVICE_LD3,
+            DEVICE_TEST,
+        };
+
+        radio.closeReadingPipe(pipe);
+        radio.stopListening();
+        for (size_t i = 1; i < 5; i++)
+        {
+            // NOTE!?!?!? while testing disable the other litterally unreachable devices.
+            // TODO REMOVE THIS IN PRODUCTION!
+            if (i != 4)
+                continue;
+
+            if (!(devices & masks[i]))
+            {
+                Serial.print("Payload not send to the value at index: ");
+                Serial.println(i);
+                if (!radio_send_payload(RADIO_ADDR[i], payload))
+                {
+                    Serial.print("Failed sending payload to: ");
+                    Serial.println(i);
+                }
+                else
+                {
+                    Serial.println("Radio received payload");
+                }
+            }
+        }
+        setup_radio_listen();
         Serial.println();
-        Serial.println();
+
 
 
         // if (our shit is already received in the original payload only forward it)
