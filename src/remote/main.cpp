@@ -9,14 +9,15 @@
 #define CE_PIN 3
 #define CSN_PIN 4
 
-
-// #define PRINT
+// Amout of light fixtures to send the payload to.
 #define LED_COUNT 3
 
-RF24 radio(CE_PIN, CSN_PIN);
-
+#define DEBUG_PIN 10
 
 typedef void isr_func(void);
+
+
+RF24 radio(CE_PIN, CSN_PIN);
 
 void button_1_cb();
 void button_2_cb();
@@ -38,7 +39,7 @@ const int8_t BUTTONS[BUTTON_COUNT] {
 int counter = 0;
 
 // BUTTON_COUNT is our non-button pressed state
-t_button pressed_button = BUTTON_COUNT;
+t_button g_pressed_button = BUTTON_COUNT;
 
 void disable_interrupts()
 {
@@ -59,14 +60,36 @@ void enable_interrupts()
 
 void radioSend(t_button btn)
 {
-    t_button tmp = btn;
-    // disable_interrupts();
+    // construct payload.
+    t_payload payload = set_payload(btn, (t_device) 0);
+    
     radio.powerUp();
     for (size_t i = 0; i < LED_COUNT; i++)
     {
         // go from index `ADDR_LED_1` to `i`
-        radio.openWritingPipe(RADIO_ADDR[1 + i]);
-        bool report = radio.write(&tmp, sizeof(t_button)); // transmit & save the report
+        // radio.openWritingPipe(RADIO_ADDR[1 + i]);
+        radio.openWritingPipe(RADIO_ADDR[1]);
+        bool report = radio.write(&payload, sizeof(t_payload)); // transmit & save the report
+        if (!report)
+        {
+            for (size_t i = 0; i < 5; i++)
+            {
+                digitalWrite(DEBUG_PIN, LOW);
+                delay(10);
+                digitalWrite(DEBUG_PIN, HIGH);
+                delay(10);
+            }
+        }
+        else
+        {
+            for (size_t i = 0; i < 2; i++)
+            {
+                digitalWrite(DEBUG_PIN, LOW);
+                delay(20);
+                digitalWrite(DEBUG_PIN, HIGH);
+                delay(20);
+            }
+        }
 #ifdef PRINT
         if (report)
         {
@@ -84,42 +107,37 @@ void radioSend(t_button btn)
         counter++;
 #endif
         delay(5);
+
+        break;
     }
     
-
     radio.powerDown();
-    // enable_interrupts();
 }
 
 void setup_radio()
 {
+#ifdef PRINT
     // initialize the transceiver on the SPI bus
     if (!radio.begin())
     {
-#ifdef PRINT
         Serial.println(F("radio hardware is not responding!!"));
-#endif
     }
-    // TODO Test powerlevels.
+#endif
+    
     radio.setPALevel(RF24_PA_HIGH);
     radio.setAddressWidth(3);
-    radio.setPayloadSize(sizeof(t_button));
+    radio.setPayloadSize(sizeof(t_payload));
 
-    radio.stopListening();                       // put radio in TX mode
+    // put radio in TX mode
+    radio.stopListening();
     radio.openWritingPipe(RADIO_ADDR[ADDR_LED_1]);
 }
 
 void wakeup(t_button x)
 {
-   pressed_button = x; 
+   g_pressed_button = x; 
 }
 
-
-// Gnarly callbacks, but for now this is the easiest way to pass which button has been pressed.
-// void button_1_cb() {radioSend(BUTTON_1);}
-// void button_2_cb() {radioSend(BUTTON_2);}
-// void button_3_cb() {radioSend(BUTTON_3);}
-// void button_4_cb() {radioSend(BUTTON_4);}
 
 void button_1_cb() {wakeup(BUTTON_1);}
 void button_2_cb() {wakeup(BUTTON_2);}
@@ -128,13 +146,15 @@ void button_4_cb() {wakeup(BUTTON_4);}
 
 void setup()
 {
-    Serial.begin(115200);
-    Serial.println("Restarting...");
     delay(5000);
-    Serial.println("Done");
+#ifdef DEBUG
+    Serial.begin(115200);
+    // Serial.println("Restarting...");
+    // Serial.println("Done");
 
-
-    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(DEBUG_PIN, OUTPUT);
+    digitalWrite(DEBUG_PIN, HIGH);
+#endif
 
     // Setup our Pin Change Interrupts.
     for (int i = 0; i < BUTTON_COUNT; i++)
@@ -144,6 +164,7 @@ void setup()
     }
 
 
+    // TODO Checkout how much this matters
     // Set unused pins to this saves around 100uA.
     // for (int i = 0; i < 20; i++)
     // {
@@ -154,6 +175,14 @@ void setup()
 
     setup_radio();
     radio.powerDown();
+
+#ifdef DEBUG
+    digitalWrite(DEBUG_PIN, LOW);
+    delay(100);
+    digitalWrite(DEBUG_PIN, HIGH);
+    delay(100);
+    digitalWrite(DEBUG_PIN, LOW);
+#endif
 }
 
 void loop()
@@ -161,15 +190,23 @@ void loop()
     enable_interrupts();
 
     LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_OFF);
+    // When an interrupt gets called the device will wakeup and finish the remaning of the `loop` function.
+    // Until it reaches the `powerDown` call again.
 
     disable_interrupts();
 
-    if (pressed_button != BUTTON_COUNT)
+    if (g_pressed_button != BUTTON_COUNT)
     {
-        radioSend(pressed_button);
+        radioSend(g_pressed_button);
+#ifdef DEBUG
+        digitalWrite(DEBUG_PIN, HIGH);
+        delay(100);
+        digitalWrite(DEBUG_PIN, LOW);
+        delay(100);
+#endif
         delay(100);
     }
 
-    pressed_button = BUTTON_COUNT;
+    g_pressed_button = BUTTON_COUNT;
 
 }

@@ -55,7 +55,6 @@ Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire, OLED_RESET);
 RF24 radio(RADIO_CE_PIN, RADIO_CSN_PIN);
 
 t_ui main_ui;
-t_button state;
 
 #ifdef HAS_LCD
 void display_setup()
@@ -160,7 +159,7 @@ void set_pwm(ColorRBGW c)
         analogWrite(PINOUT[i], color);
 
 #ifdef DEBUG
-        Serial.print("writing to pin: ");
+        Serial.print("writing to analog pin: ");
         Serial.print(PINOUT[i]);
         Serial.print(" with value: ");
         Serial.println(color);
@@ -172,8 +171,8 @@ void setup()
 {
 
 #ifdef DEBUG
-    Serial.begin(115200);
     delay(2000);
+    Serial.begin(115200);
 #endif
 
     // Set LED PWM pins to output.
@@ -198,10 +197,6 @@ void setup()
 #endif
 
 
-    /** Set SCK rate to F_CPU/4. See Sd2Card::setSckRate(). */
-    // uint8_t const SPI_HALF_SPEED = 1;
-
-    // RF24 = 10000000hz
     delay(100);
 
     if (!radio.begin())
@@ -227,7 +222,7 @@ void setup()
     delay(100);
     radio.setPALevel(RF24_PA_HIGH); // RF24_PA_MAX is default.
     radio.setAddressWidth(3);
-    radio.setPayloadSize(sizeof(t_button)); // float datatype occupies 4 bytes
+    radio.setPayloadSize(sizeof(t_payload));
 
     radio.openReadingPipe(0, RADIO_ADDR[CURRENT_READING_PIPE]); // using pipe 0
     radio.startListening(); // put radio in RX mode
@@ -240,34 +235,51 @@ void setup()
 }
 
 
+
 void loop()
 {
     uint8_t pipe;
     if (radio.available(&pipe))
     {
-        t_button data;
+        t_payload payload;
         uint8_t bytes = radio.getPayloadSize();
-        radio.read(&data, bytes);
+        radio.read(&payload, bytes);
 #ifdef DEBUG
         Serial.print(F("Received "));
         Serial.print(bytes);
         Serial.print(F(" bytes on pipe "));
         Serial.print(pipe);
         Serial.print(F(": "));
-        Serial.println(data);
+        Serial.println(payload);
 #endif
 
+        uint8_t num = 0;
+        t_button button = get_button(payload);
+        while (((button >> num) & 0x1) == 0)
+        {
+            num++;
+            if (num > 8)
+                break;
+                // TODO Handle error
+        }
+
+#ifdef DEBUG
+
+
+        Serial.print("Number from bin: ");
+        Serial.print(button);
+        Serial.print(" is numeric: ");
+        Serial.println(num);
         
-        if (data == state)
-        {
-            set_pwm({0, 0, 0, 0});
-            state = (t_button) 10;
-        }
-        else
-        {
-            set_pwm(PROFILES[data]);
-            state = data;
-        }
+
+
+        t_device devices = get_device(payload);
+        Serial.print("devices: ");
+        Serial.println(devices);
+#endif
+
+
+        set_pwm(PROFILES[num]);
 
 #ifdef HAS_LCD
         // when we receive signal update the `ui` struct with our `pin` variable as index.
