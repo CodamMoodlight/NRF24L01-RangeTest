@@ -56,7 +56,6 @@ Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire, OLED_RESET);
 RF24 radio(RADIO_CE_PIN, RADIO_CSN_PIN);
 
 t_ui main_ui;
-t_button state;
 
 #ifdef HAS_LCD
 void display_setup()

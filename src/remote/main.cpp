@@ -59,14 +59,14 @@ void enable_interrupts()
 
 void radioSend(t_button btn)
 {
-    t_payload payload = set_payload((t_command)(btn), (t_device) (DEVICE_LD1 | DEVICE_LD3));
+    t_payload payload = set_payload((t_command)(btn), (t_device) (0));
     radio.powerUp();
     for (size_t i = 0; i < LED_COUNT; i++)
     {
         // go from index `ADDR_LED_1` to `i`
         radio.openWritingPipe(RADIO_ADDR[1 + i]);
         bool report = radio.write(&payload, sizeof(t_payload));
-        delay(5);
+        delay(50);
     }
     radio.powerDown();
 }
@@ -102,13 +102,16 @@ void button_4_cb() {wakeup(BUTTON_4);}
 
 void setup()
 {
-    Serial.begin(115200);
+#ifdef DEBUG
     Serial.println("Restarting...");
+    Serial.begin(115200);
+#endif
     delay(5000);
+
+#ifdef DEBUG
     Serial.println("Done");
+#endif
 
-
-    pinMode(LED_BUILTIN, OUTPUT);
 
     // Setup our Pin Change Interrupts.
     for (int i = 0; i < BUTTON_COUNT; i++)

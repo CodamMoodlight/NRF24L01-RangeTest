@@ -49,6 +49,9 @@ static const uint8_t RADIO_ADDR[ADDR_COUNT][6] = {
 
 // Use a `t_payload` type for sending our data.
 typedef uint8_t t_payload;
+// the payload looks like: 0b0000 0000
+// where the first nibble contains the `t_command` bits, and the last the `t_device` where the light fixture(s) will clear its bit if it has received the payload forwarding it to the one that hasn't received it.
+// So when sending this payload from the remote, it should all be set.
 
 typedef enum e_command
 {
