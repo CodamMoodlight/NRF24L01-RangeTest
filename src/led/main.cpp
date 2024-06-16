@@ -271,32 +271,24 @@ void loop()
         uint8_t bytes = radio.getPayloadSize();
         radio.read(&payload, bytes);
 #ifdef DEBUG
-        // Serial.print(F("Received "));
-        // Serial.print(bytes);
-        // Serial.print(F(" bytes on pipe "));
-        // Serial.print(pipe);
-        // Serial.print(F(": "));
-        Serial.print("ray payload: ");
+        Serial.print("raw payload: ");
         Serial.println(payload);
-
         print_payload("received payload: ", payload);
-
-
         Serial.println();
-
 #endif
 
         t_command cmd = get_command(payload);
-        t_device devices = (t_device) ((uint8_t) (payload) | get_current_device(CURRENT_READING_PIPE));
-        
+        t_device devices = (t_device) ((uint8_t) (get_devices(payload)) | (uint8_t) get_current_device(CURRENT_READING_PIPE));
         t_payload forward_payload = set_payload(cmd, devices);
 
 
+#ifdef DEBUG
         print_payload("forward payload: ", forward_payload);
-
+        Serial.print("raw forward payload: ");
+        Serial.println(forward_payload);
         Serial.println();
+#endif
 
-        
 
         // dirty but simple
         const uint8_t masks[4] = {
@@ -312,15 +304,18 @@ void loop()
         {
             // NOTE!?!?!? while testing disable the other litterally unreachable devices.
             // TODO REMOVE THIS IN PRODUCTION!
-            if (i != 3)
-                continue;
+            // if (i != 3)
+            //     continue;
 
             if (!(devices & masks[i]))
             {
                 const uint8_t index = i + 1;
+#ifdef DEBUG
                 Serial.print("Payload not yet send to the addres at index: ");
                 Serial.println(index);
-                if (!radio_send_payload(RADIO_ADDR[index], payload))
+#endif
+                if (!radio_send_payload(RADIO_ADDR[index], forward_payload))
+#ifdef DEBUG
                 {
                     Serial.print("Failed sending payload to: ");
                     Serial.println(index);
@@ -329,6 +324,8 @@ void loop()
                 {
                     Serial.println("Transmission successful!");
                 }
+#endif
+                ;
             }
         }
         // There was a problem with radio.available triggering right after we had send our payload.
@@ -341,9 +338,12 @@ void loop()
         // if (our shit is already received in the original payload only forward it)
         set_pwm(PROFILES[cmd]);
 
+
+#ifdef DEBUG
         Serial.println();
         Serial.println();
         Serial.println();
+#endif
 
 
 
