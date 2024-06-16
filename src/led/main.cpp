@@ -136,20 +136,20 @@ const static int PINOUT[PIN_COUNT] = {
 };
 
 
-// const static ColorRBGW PROFILES[] = {
-//     {0, 0, 0, 50}, //power: white
-//     {0, 100, 0, 0}, //live: green
-//     {100, 0, 0, 0}, //recording: red
-//     {0, 0, 100, 0}, //quiet: blue
-// };
+const static ColorRBGW PROFILES[] = {
+    {0, 0, 0, 50}, //power: white
+    {0, 100, 0, 0}, //live: green
+    {100, 0, 0, 0}, //recording: red
+    {0, 0, 100, 0}, //quiet: blue
+};
 
 // Values can be from 0-255
-const static ColorRBGW PROFILES[] = {
-    {100, 0, 0, 0},
-    {10, 100, 0, 0},
-    {0, 25, 100, 0},
-    {0, 0, 0, 100},
-};
+// const static ColorRBGW PROFILES[] = {
+//     {100, 0, 0, 0},
+//     {10, 100, 0, 0},
+//     {0, 25, 100, 0},
+//     {0, 0, 0, 100},
+// };
 
 void set_pwm(ColorRBGW c)
 {
@@ -167,6 +167,13 @@ void set_pwm(ColorRBGW c)
 #endif
     }
 }
+
+void setup_radio_listen()
+{
+    radio.openReadingPipe(0, RADIO_ADDR[CURRENT_READING_PIPE]); // using pipe 0
+    radio.startListening(); // put radio in RX mode
+}
+
 
 void setup()
 {
@@ -225,18 +232,28 @@ void setup()
 
     }
     delay(100);
+
     radio.setPALevel(RF24_PA_HIGH); // RF24_PA_MAX is default.
     radio.setAddressWidth(3);
     radio.setPayloadSize(sizeof(t_payload)); // float datatype occupies 4 bytes
 
-    radio.openReadingPipe(0, RADIO_ADDR[CURRENT_READING_PIPE]); // using pipe 0
-    radio.startListening(); // put radio in RX mode
+    setup_radio_listen();
 
 #ifdef DEBUG
     Serial.println("setup DONE!");
 #endif
 
     // For debugging info
+}
+
+t_device get_current_device(uint8_t cur_dev)
+{
+    if (cur_dev == 1)
+        return (DEVICE_LD1);
+    if (cur_dev == 2)
+        return (DEVICE_LD2);
+    if (cur_dev == 3)
+        return (DEVICE_LD3);
 }
 
 
@@ -262,16 +279,29 @@ void loop()
         Serial.print(" | devices: ");
         Serial.println(get_devices(payload));
         Serial.println();
-        Serial.println();
-        Serial.println();
-
-
 
 #endif
 
-
+        t_command cmd = get_command(payload);
+        t_device devices = get_devices(payload);
         
-        // set_pwm(PROFILES[data]);
+        t_payload forward_payload = set_payload(cmd, (t_device) (devices | get_current_device(CURRENT_READING_PIPE)));
+
+        Serial.print("forward payload: ");
+        Serial.println(forward_payload);
+
+        Serial.println();
+        Serial.println();
+        Serial.println();
+
+
+        // if (our shit is already received in the original payload only forward it)
+        set_pwm(PROFILES[cmd]);
+
+
+
+
+
 
 #ifdef HAS_LCD
         // when we receive signal update the `ui` struct with our `pin` variable as index.
