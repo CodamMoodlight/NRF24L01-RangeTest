@@ -235,13 +235,13 @@ void setup()
 
 t_device get_current_device(uint8_t cur_dev)
 {
-    if (cur_dev == 1)
+    if (cur_dev == ADDR_LED_1)
         return (DEVICE_LD1);
-    if (cur_dev == 2)
+    if (cur_dev == ADDR_LED_2)
         return (DEVICE_LD2);
-    if (cur_dev == 3)
+    if (cur_dev == ADDR_LED_3)
         return (DEVICE_LD3);
-    if (cur_dev == 4)
+    if (cur_dev == ADDR_TEST)
         return (DEVICE_TEST);
 }
 
