@@ -8,9 +8,10 @@
 // Light fixture macros //
 /************************/
 // Change this value depending on what light you're building the firmware for.
-#define CURRENT_READING_PIPE ADDR_LED_1
+// #define CURRENT_READING_PIPE ADDR_LED_1
 // #define CURRENT_READING_PIPE ADDR_LED_2
 // #define CURRENT_READING_PIPE ADDR_LED_3
+#define CURRENT_READING_PIPE ADDR_TEST
 
 // #define HAS_LCD
 // #define DEBUG
@@ -27,6 +28,7 @@ typedef enum e_addreses
     ADDR_LED_1,
     ADDR_LED_2,
     ADDR_LED_3,
+    ADDR_TEST,
     ADDR_COUNT,
 } t_addreses;
 
