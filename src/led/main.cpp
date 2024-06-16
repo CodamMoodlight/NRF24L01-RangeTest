@@ -227,7 +227,7 @@ void setup()
     delay(100);
     radio.setPALevel(RF24_PA_HIGH); // RF24_PA_MAX is default.
     radio.setAddressWidth(3);
-    radio.setPayloadSize(sizeof(t_button)); // float datatype occupies 4 bytes
+    radio.setPayloadSize(sizeof(t_payload)); // float datatype occupies 4 bytes
 
     radio.openReadingPipe(0, RADIO_ADDR[CURRENT_READING_PIPE]); // using pipe 0
     radio.startListening(); // put radio in RX mode
@@ -245,7 +245,7 @@ void loop()
     uint8_t pipe;
     if (radio.available(&pipe))
     {
-        t_button data;
+        t_payload data;
         uint8_t bytes = radio.getPayloadSize();
         radio.read(&data, bytes);
 #ifdef DEBUG
@@ -257,17 +257,9 @@ void loop()
         Serial.println(data);
 #endif
 
+
         
-        if (data == state)
-        {
-            set_pwm({0, 0, 0, 0});
-            state = (t_button) 10;
-        }
-        else
-        {
-            set_pwm(PROFILES[data]);
-            state = data;
-        }
+        // set_pwm(PROFILES[data]);
 
 #ifdef HAS_LCD
         // when we receive signal update the `ui` struct with our `pin` variable as index.

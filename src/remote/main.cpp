@@ -59,30 +59,14 @@ void enable_interrupts()
 
 void radioSend(t_button btn)
 {
-    t_button tmp = btn;
+    t_payload payload = (uint8_t) counter++;
     // disable_interrupts();
     radio.powerUp();
     for (size_t i = 0; i < LED_COUNT; i++)
     {
         // go from index `ADDR_LED_1` to `i`
         radio.openWritingPipe(RADIO_ADDR[1 + i]);
-        bool report = radio.write(&tmp, sizeof(t_button)); // transmit & save the report
-#ifdef PRINT
-        if (report)
-        {
-            Serial.print(F("Transmission successful! ")); // payload was delivered
-            Serial.print(F("Time to transmit = "));
-            Serial.print(F(" us. Sent: "));
-            Serial.println(tmp); // print payload sent
-        }
-        else
-        {
-            Serial.println(F("Transmission failed or timed out")); // payload was not delivered
-        }
-        Serial.print("counter: ");
-        Serial.println(counter);
-        counter++;
-#endif
+        bool report = radio.write(&payload, sizeof(t_payload));
         delay(5);
     }
     
@@ -103,7 +87,7 @@ void setup_radio()
     // TODO Test powerlevels.
     radio.setPALevel(RF24_PA_HIGH);
     radio.setAddressWidth(3);
-    radio.setPayloadSize(sizeof(t_button));
+    radio.setPayloadSize(sizeof(t_payload));
 
     radio.stopListening();                       // put radio in TX mode
     radio.openWritingPipe(RADIO_ADDR[ADDR_LED_1]);
@@ -114,12 +98,6 @@ void wakeup(t_button x)
    pressed_button = x; 
 }
 
-
-// Gnarly callbacks, but for now this is the easiest way to pass which button has been pressed.
-// void button_1_cb() {radioSend(BUTTON_1);}
-// void button_2_cb() {radioSend(BUTTON_2);}
-// void button_3_cb() {radioSend(BUTTON_3);}
-// void button_4_cb() {radioSend(BUTTON_4);}
 
 void button_1_cb() {wakeup(BUTTON_1);}
 void button_2_cb() {wakeup(BUTTON_2);}

@@ -13,7 +13,7 @@
 // #define CURRENT_READING_PIPE ADDR_LED_3
 
 // #define HAS_LCD
-// #define DEBUG
+#define DEBUG
 /************************/
 
 
