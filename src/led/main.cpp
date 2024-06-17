@@ -139,7 +139,8 @@ const static ColorRBGW PROFILES[] = {
     {0, 0, 0, 50}, //power: white
     {0, 100, 0, 0}, //live: green
     {100, 0, 0, 0}, //recording: red
-    {15, 80, 200, 0}, //quiet: blue
+    {0, 0, 100, 0}, //quiet: blue
+    {0, 0, 0, 0}, //power: off
 };
 
 void set_pwm(ColorRBGW c)
@@ -333,9 +334,11 @@ void loop()
         radio.flush_rx();
         setup_radio_listen();
 
+#ifdef DEBUG
+        Serial.print("cmd: ");
+        Serial.println(cmd);
+#endif
 
-
-        // if (our shit is already received in the original payload only forward it)
         set_pwm(PROFILES[cmd]);
 
 

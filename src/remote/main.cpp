@@ -37,8 +37,8 @@ const int8_t BUTTONS[BUTTON_COUNT] {
 
 int counter = 0;
 
-// BUTTON_COUNT is our non-button pressed state
-t_button pressed_button = BUTTON_COUNT;
+t_button latest_button = BUTTON_COUNT;
+bool light_on = true;
 
 void disable_interrupts()
 {
@@ -57,9 +57,9 @@ void enable_interrupts()
 }
 
 
-void radioSend(t_button btn)
+void radioSend(t_command cmd)
 {
-    t_payload payload = set_payload((t_command)(btn), (t_device) (0));
+    t_payload payload = set_payload(cmd, (t_device) (0));
     radio.powerUp();
     for (size_t i = 0; i < LED_COUNT; i++)
     {
@@ -89,9 +89,9 @@ void setup_radio()
     radio.openWritingPipe(RADIO_ADDR[ADDR_LED_1]);
 }
 
-void wakeup(t_button x)
+void wakeup(t_button current_button)
 {
-   pressed_button = x; 
+    latest_button = current_button;
 }
 
 
@@ -141,12 +141,26 @@ void loop()
 
     disable_interrupts();
 
-    if (pressed_button != BUTTON_COUNT)
+    if (latest_button != BUTTON_COUNT)
     {
-        radioSend(pressed_button);
+        t_command cmd = (t_command) latest_button;
+        if (latest_button == BUTTON_1 && !light_on)
+        {
+            cmd = COMMAND_BUTTON_1_OFF;
+            light_on = true;
+        }
+        else if (latest_button == BUTTON_1)
+        {
+            light_on = false;
+        }
+        else
+        {
+            light_on = true;
+        }
+        radioSend(cmd);
         delay(100);
     }
 
-    pressed_button = BUTTON_COUNT;
+    latest_button = BUTTON_COUNT;
 
 }

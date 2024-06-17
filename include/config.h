@@ -14,7 +14,7 @@
 // #define CURRENT_READING_PIPE ADDR_TEST
 
 // #define HAS_LCD
-// #define DEBUG
+#define DEBUG
 /************************/
 
 
@@ -63,6 +63,7 @@ typedef enum e_command
 	COMMAND_BUTTON_2 = 1,
 	COMMAND_BUTTON_3 = 2,
 	COMMAND_BUTTON_4 = 3,
+	COMMAND_BUTTON_1_OFF = 4,
     COMMAND_COUNT,
 } t_command;
 
