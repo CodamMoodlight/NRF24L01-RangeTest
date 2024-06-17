@@ -5,7 +5,6 @@
 #include <Adafruit_SSD1306.h>
 #include "config.h"
 
-#define DEBUG
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 32 
@@ -300,7 +299,8 @@ void loop()
 
         radio.closeReadingPipe(pipe);
         radio.stopListening();
-        for (size_t i = 0; i < 4; i++)
+        // `i < 3` skipping the `DEVICE_TEST`
+        for (size_t i = 0; i < 3; i++)
         {
             // NOTE!?!?!? while testing disable the other litterally unreachable devices.
             // TODO REMOVE THIS IN PRODUCTION!
